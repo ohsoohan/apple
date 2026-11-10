@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ko" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanWater Hub - 안전한 식수 네트워크</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Smooth Scrolling */
+        html { scroll-behavior: smooth; }
+        /* Ultra Low Bandwidth Mode Tweaks */
+        .low-bandwidth * {
+            box-shadow: none !important;
+            text-shadow: none !important;
+            transition: none !important;
+            animation: none !important;
+        }
+        .low-bandwidth img, .low-bandwidth svg {
+            filter: grayscale(100%);
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 flex flex-col font-sans antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="w-9 h-9 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                    💧
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-slate-900 leading-tight" id="txt-app-title">CleanWater Hub</h1>
+                    <p class="text-xs text-brand-600 font-medium hidden sm:block" id="txt-app-subtitle">SDG 6.1 safe drinking water access</p>
+                </div>
+            </div>
+
+            <!-- Top Actions: Language & Low Bandwidth Toggle -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Low Bandwidth Mode Button -->
+                <button id="btn-low-data" onclick="toggleLowBandwidth()" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 transition flex items-center space-x-1">
+                    <span id="icon-data">⚡</span>
+                    <span id="txt-low-data-btn">저용량 모드</span>
+                </button>
+
+                <!-- Language Toggle -->
+                <button id="btn-lang" onclick="toggleLanguage()" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition">
+                    🌐 English
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 space-y-6">
+
+        <!-- Ethical & Emergency Alert Banner -->
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm">
+            <div class="flex items-start">
+                <div class="text-amber-600 text-xl mr-3">⚠️</div>
+                <div class="text-xs sm:text-sm text-amber-800">
+                    <p class="font-bold mb-0.5" id="txt-alert-title">윤리적 고지 및 식수 안전 주의사항</p>
+                    <p id="txt-alert-desc">
+                        본 플랫폼의 식수 지점 현황은 정부 및 수질 검사 기관의 데이터와 주민 제보를 바탕으로 제공됩니다. 
+                        오염 우려가 있는 물은 **반드시 끓이거나 정수 지침에 따라 소독** 후 음용하십시오. 긴급 식수 지원이 필요할 경우 관할 지방자치단체나 긴급구호센터에 연락하시기 바랍니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-slate-200 overflow-x-auto no-scrollbar space-x-2">
+            <button onclick="switchTab('finder')" id="tab-finder" class="tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-brand-600 text-brand-600 whitespace-nowrap">
+                📍 <span id="txt-tab-finder">식수 공급처 찾기</span>
+            </button>
+            <button onclick="switchTab('report')" id="tab-report" class="tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">
+                🚨 <span id="txt-tab-report">식수 문제 신고/제보</span>
+            </button>
+            <button onclick="switchTab('guide')" id="tab-guide" class="tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">
+                📚 <span id="txt-tab-guide">자체 정수/위생 가이드</span>
+            </button>
+        </div>
+
+        <!-- TAB 1: SAFE WATER FINDER -->
+        <section id="sec-finder" class="space-y-4">
+            <!-- Search & Filter Controls -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <!-- Search Input -->
+                    <div class="relative flex-1">
+                        <input type="text" id="search-input" onkeyup="filterWaterPoints()" placeholder="지역명 또는 공급처 이름 검색..." class="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
+                    </div>
+                    <!-- Status Filter -->
+                    <select id="status-filter" onchange="filterWaterPoints()" class="px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                        <option value="all" id="opt-all">전체 상태 보기</option>
+                        <option value="safe" id="opt-safe">✅ 음용 가능 (Safe)</option>
+                        <option value="testing" id="opt-testing">🟡 검사 진행 중 (Testing)</option>
+                        <option value="unsafe" id="opt-unsafe">🚫 사용 금지 (Unsafe)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Water Points List Grid -->
+            <div id="water-points-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Dynamic Content Loaded by JS -->
+            </div>
+        </section>
+
+        <!-- TAB 2: COMMUNITY REPORTING -->
+        <section id="sec-report" class="hidden space-y-6">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h2 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+                    <span>✍️</span>
+                    <span id="txt-report-form-title">식수 시설 상태 제보하기</span>
+                </h2>
+                <form id="report-form" onsubmit="handleReportSubmit(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-location">식수처 위치 / 이름</label>
+                        <input type="text" id="report-location" required placeholder="예: 평화 마을 3번 공동 펌프" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-type">문제 유형</label>
+                        <select id="report-type" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                            <option value="고장/단수" id="opt-type-broken">펌프 고장 / 단수</option>
+                            <option value="수질 오염" id="opt-type-polluted">수질 오염 (탁도/악취)</option>
+                            <option value="필터 교체 요청" id="opt-type-filter">필터 교체 요청</option>
+                            <option value="정상 작동 확인" id="opt-type-normal">정상 작동 확인 (음용 안전)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-desc">상세 내용</label>
+                        <textarea id="report-desc" rows="3" required placeholder="상태에 대해 자세히 설명해 주세요..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-2.5 bg-brand-600 text-white rounded-lg font-bold text-sm hover:bg-brand-700 transition shadow-sm" id="btn-submit-report">
+                        제보 제출하기
+                    </button>
+                </form>
+            </div>
+
+            <!-- Recent Reports Feed -->
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold text-slate-800 flex items-center justify-between">
+                    <span id="txt-recent-reports">최근 지역 주민 제보 현황</span>
+                    <span class="text-xs font-normal text-slate-500" id="txt-live-feed">실시간 갱신</span>
+                </h3>
+                <div id="recent-reports-list" class="space-y-2">
+                    <!-- Dynamic Reports -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: WATER PURIFICATION GUIDE -->
+        <section id="sec-guide" class="hidden space-y-4">
+            <div class="bg-brand-50 border border-brand-100 p-4 rounded-xl">
+                <h3 class="text-sm font-bold text-brand-900 mb-1" id="txt-guide-header">💡 저비용/적정기술 자가 정수 가이드</h3>
+                <p class="text-xs text-brand-700" id="txt-guide-sub">안전한 식수가 공급되지 않을 때 현장에서 즉시 적용할 수 있는 정수 방법입니다.</p>
+            </div>
+
+            <!-- Purification Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Method 1: Boiling -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="text-2xl mb-2">🔥</div>
+                        <h4 class="font-bold text-sm text-slate-900 mb-1" id="txt-boil-title">1. 물 끓이기 (Boiling)</h4>
+                        <p class="text-xs text-slate-600 mb-3" id="txt-boil-desc">가장 확실하고 효과적인 소독 방법입니다. 모든 세균과 바이러스를 사멸시킵니다.</p>
+                        <ul class="text-xs text-slate-600 space-y-1 bg-slate-50 p-2.5 rounded-lg border border-slate-100 mb-3">
+                            <li>• 물이 기포를 일으키며 끓을 때까지 가열</li>
+                            <li>• 최소 1분 이상 강하게 끓임</li>
+                            <li>• 고지대(2,000m 이상)는 3분 동안 끓임</li>
+                        </ul>
+                    </div>
+                    <label class="flex items-center space-x-2 text-xs font-medium text-slate-700 cursor-pointer pt-2 border-t border-slate-100">
+                        <input type="checkbox" class="rounded text-brand-600 focus:ring-brand-500" onchange="toggleChecklist(this)">
+                        <span id="txt-check-boil">실습 완료 체크</span>
+                    </label>
+                </div>
+
+                <!-- Method 2: SODIS -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="text-2xl mb-2">☀️</div>
+                        <h4 class="font-bold text-sm text-slate-900 mb-1" id="txt-sodis-title">2. 태양광 소독 (SODIS)</h4>
+                        <p class="text-xs text-slate-600 mb-3" id="txt-sodis-desc">연료가 없을 때 투명 PET병과 햇빛(자외선)을 이용하는 적정기술입니다.</p>
+                        <ul class="text-xs text-slate-600 space-y-1 bg-slate-50 p-2.5 rounded-lg border border-slate-100 mb-3">
+                            <li>• 투명한 PET병에 깨끗한 물을 채움</li>
+                            <li>• 햇빛이 잘 드는 곳(지붕 등)에 평평히 둠</li>
+                            <li>• 맑은 날 최소 6시간 햇빛 노출</li>
+                        </ul>
+                    </div>
+                    <label class="flex items-center space-x-2 text-xs font-medium text-slate-700 cursor-pointer pt-2 border-t border-slate-100">
+                        <input type="checkbox" class="rounded text-brand-600 focus:ring-brand-500" onchange="toggleChecklist(this)">
+                        <span id="txt-check-sodis">실습 완료 체크</span>
+                    </label>
+                </div>
+
+                <!-- Method 3: Cloth/Sand Filter -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="text-2xl mb-2">🧺</div>
+                        <h4 class="font-bold text-sm text-slate-900 mb-1" id="txt-filter-title">3. 천/모래 여과 (Filtration)</h4>
+                        <p class="text-xs text-slate-600 mb-3" id="txt-filter-desc">탁한 물의 흙이나 부유물질을 먼저 걸러내는 1차 정수 단계입니다.</p>
+                        <ul class="text-xs text-slate-600 space-y-1 bg-slate-50 p-2.5 rounded-lg border border-slate-100 mb-3">
+                            <li>• 깨끗한 천을 4~8겹 접어 침전물 여과</li>
+                            <li>• 숯, 모래, 자갈 레이어를 통과시킴</li>
+                            <li>• 여과 후 반드시 끓이거나 소독 진행</li>
+                        </ul>
+                    </div>
+                    <label class="flex items-center space-x-2 text-xs font-medium text-slate-700 cursor-pointer pt-2 border-t border-slate-100">
+                        <input type="checkbox" class="rounded text-brand-600 focus:ring-brand-500" onchange="toggleChecklist(this)">
+                        <span id="txt-check-filter">실습 완료 체크</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto py-6">
+        <div class="max-w-5xl mx-auto px-4 text-center space-y-2">
+            <p class="text-xs text-slate-500" id="txt-footer-sdg">
+                🌐 UN 지속가능발전목표 (SDGs) Goal 6.1: "모두를 위한 안전하고 부담 없는 식수의 보편적 접근 달성"
+            </p>
+            <p class="text-xs text-slate-400">CleanWater Hub Protocol • Open Educational Prototype</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Data State
+        let currentLang = 'ko';
+        let isLowBandwidth = false;
+
+        // Sample Water Points Data
+        const waterPoints = [
+            {
+                id: 1,
+                name: { ko: "중앙 공공 식수 공급소 (Well A)", en: "Central Public Well A" },
+                location: { ko: "희망구 1동 주민센터 앞", en: "In front of Hope District Center" },
+                status: "safe",
+                hours: "06:00 - 22:00",
+                distance: "0.3km",
+                updated: { ko: "10분 전 검사 완료", en: "Tested 10m ago" },
+                note: { ko: "수질 검사 결과 적합 (정수 필터 정상)", en: "Water quality test PASSED" }
+            },
+            {
+                id: 2,
+                name: { ko: "평화 마을 공동 빗물 정수장", en: "Peace Village Rainwater Facility" },
+                location: { ko: "평화길 45", en: "45 Peace Road" },
+                status: "testing",
+                hours: "24시간",
+                distance: "0.8km",
+                updated: { ko: "오늘 오전 검사 중", en: "Testing in progress" },
+                note: { ko: "정수 필터 교체 진행 중 (끓여서 음용 권장)", en: "Filter replacement in progress. Boil before drinking." }
+            },
+            {
+                id: 3,
+                name: { ko: "동부 급수 수조 2호", en: "East Reservoir Tank #2" },
+                location: { ko: "동부 산업도로 입구", en: "East Highway Entrance" },
+                status: "unsafe",
+                hours: "운행 중단",
+                distance: "1.2km",
+                updated: { ko: "1시간 전", en: "1 hour ago" },
+                note: { ko: "탁도 기준 초과 (배관 균열 감지, 사용 금지)", en: "High turbidity detected. DO NOT USE." }
+            },
+            {
+                id: 4,
+                name: { ko: "희망 초등학교 식수 지원 시설", en: "Hope Elem. Emergency Water Tank" },
+                location: { ko: "희망초등학교 후문", en: "Hope Elem. Back Gate" },
+                status: "safe",
+                hours: "08:00 - 18:00",
+                distance: "1.5km",
+                updated: { ko: "2시간 전", en: "2 hours ago" },
+                note: { ko: "UV 소독 장치 작동 중 (음용 가능)", en: "UV sterilization system ACTIVE" }
+            }
+        ];
+
+        // Community Reports Initial Data
+        let communityReports = [
+            {
+                location: "중앙 공공 식수 공급소",
+                type: "정상 작동 확인",
+                desc: "수돗물 잘 나오고 물 냄새도 없습니다.",
+                time: "15분 전"
+            },
+            {
+                location: "동부 급수 수조 2호",
+                type: "수질 오염",
+                desc: "물이 흙빛을 띠고 이상한 냄새가 납니다.",
+                time: "1시간 전"
+            }
+        ];
+
+        // Text Dictionary for I18n
+        const i18n = {
+            ko: {
+                title: "CleanWater Hub",
+                subtitle: "SDG 6.1 safe drinking water access",
+                lowDataBtn: "저용량 모드",
+                alertTitle: "윤리적 고지 및 식수 안전 주의사항",
+                alertDesc: "본 플랫폼의 식수 지점 현황은 정부 및 수질 검사 기관의 데이터와 주민 제보를 바탕으로 제공됩니다. 오염 우려가 있는 물은 반드시 끓이거나 정수 지침에 따라 소독 후 음용하십시오. 긴급 식수 지원이 필요할 경우 관할 지방자치단체나 긴급구호센터에 연락하시기 바랍니다.",
+                tabFinder: "식수 공급처 찾기",
+                tabReport: "식수 문제 신고/제보",
+                tabGuide: "자체 정수/위생 가이드",
+                all: "전체 상태 보기",
+                safe: "✅ 음용 가능 (Safe)",
+                testing: "🟡 검사 진행 중 (Testing)",
+                unsafe: "🚫 사용 금지 (Unsafe)",
+                reportTitle: "식수 시설 상태 제보하기",
+                lblLocation: "식수처 위치 / 이름",
+                lblType: "문제 유형",
+                lblDesc: "상세 내용",
+                btnSubmit: "제보 제출하기",
+                recentReports: "최근 지역 주민 제보 현황",
+                liveFeed: "실시간 갱신",
+                guideHeader: "💡 저비용/적정기술 자가 정수 가이드",
+                guideSub: "안전한 식수가 공급되지 않을 때 현장에서 즉시 적용할 수 있는 정수 방법입니다.",
+                boilTitle: "1. 물 끓이기 (Boiling)",
+                boilDesc: "가장 확실하고 효과적인 소독 방법입니다. 모든 세균과 바이러스를 사멸시킵니다.",
+                sodisTitle: "2. 태양광 소독 (SODIS)",
+                sodisDesc: "연료가 없을 때 투명 PET병과 햇빛(자외선)을 이용하는 적정기술입니다.",
+                filterTitle: "3. 천/모래 여과 (Filtration)",
+                filterDesc: "탁한 물의 흙이나 부유물질을 먼저 걸러내는 1차 정수 단계입니다.",
+                checkBoil: "실습 완료 체크",
+                checkSodis: "실습 완료 체크",
+                checkFilter: "실습 완료 체크",
+                footerSdg: "🌐 UN 지속가능발전목표 (SDGs) Goal 6.1: \"모두를 위한 안전하고 부담 없는 식수의 보편적 접근 달성\""
+            },
+            en: {
+                title: "CleanWater Hub",
+                subtitle: "SDG 6.1 Safe Drinking Water Access",
+                lowDataBtn: "Low Data Mode",
+                alertTitle: "Ethical Notice & Water Safety Caution",
+                alertDesc: "Water point statuses are provided via public data & community reports. Always boil or sanitize water if contamination is suspected. Contact local authorities or emergency centers for urgent aid.",
+                tabFinder: "Find Safe Water",
+                tabReport: "Report Issues",
+                tabGuide: "Purification Guide",
+                all: "All Statuses",
+                safe: "✅ Safe to Drink",
+                testing: "🟡 Under Testing",
+                unsafe: "🚫 Unsafe / Do Not Use",
+                reportTitle: "Report Water Facility Status",
+                lblLocation: "Location / Facility Name",
+                lblType: "Issue Type",
+                lblDesc: "Details",
+                btnSubmit: "Submit Report",
+                recentReports: "Recent Community Reports",
+                liveFeed: "Live Feed",
+                guideHeader: "💡 Low-Cost DIY Water Purification Guide",
+                guideSub: "Methods you can apply immediately when safe drinking water is unavailable.",
+                boilTitle: "1. Boiling Water",
+                boilDesc: "The most reliable method. Kills pathogens, bacteria, and viruses.",
+                sodisTitle: "2. Solar Disinfection (SODIS)",
+                sodisDesc: "Uses transparent PET bottles and UV sunlight when fuel is unavailable.",
+                filterTitle: "3. Cloth & Sand Filtration",
+                filterDesc: "Primary step to filter out dirt and turbidity from cloudy water.",
+                checkBoil: "Completed Check",
+                checkSodis: "Completed Check",
+                checkFilter: "Completed Check",
+                footerSdg: "🌐 UN SDGs Goal 6.1: \"Achieve universal and equitable access to safe and affordable drinking water for all\""
+            }
+        };
+
+        // Render Water Points
+        function renderWaterPoints(items) {
+            const container = document.getElementById('water-points-list');
+            container.innerHTML = '';
+
+            items.forEach(pt => {
+                let statusBadge = '';
+                let borderClass = '';
+
+                if (pt.status === 'safe') {
+                    statusBadge = `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800">✅ 음용 가능</span>`;
+                    borderClass = 'border-l-4 border-l-emerald-500';
+                } else if (pt.status === 'testing') {
+                    statusBadge = `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800">🟡 검사 중</span>`;
+                    borderClass = 'border-l-4 border-l-amber-500';
+                } else {
+                    statusBadge = `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-rose-100 text-rose-800">🚫 사용 금지</span>`;
+                    borderClass = 'border-l-4 border-l-rose-500';
+                }
+
+                const card = document.createElement('div');
+                card.className = `bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2 ${borderClass}`;
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-base">${pt.name[currentLang]}</h3>
+                            <p class="text-xs text-slate-500">📍 ${pt.location[currentLang]} (${pt.distance})</p>
+                        </div>
+                        ${statusBadge}
+                    </div>
+                    <div class="text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">
+                        <p class="font-medium">💬 ${pt.note[currentLang]}</p>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
+                        <span>🕒 운영시간: ${pt.hours}</span>
+                        <span>⏱ ${pt.updated[currentLang]}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            if (items.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-8 text-center text-slate-400 text-sm">검색 조건에 일치하는 식수처가 없습니다.</div>`;
+            }
+        }
+
+        // Filter Water Points by Search & Status
+        function filterWaterPoints() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const status = document.getElementById('status-filter').value;
+
+            const filtered = waterPoints.filter(pt => {
+                const matchesSearch = pt.name[currentLang].toLowerCase().includes(query) || 
+                                      pt.location[currentLang].toLowerCase().includes(query);
+                const matchesStatus = status === 'all' || pt.status === status;
+                return matchesSearch && matchesStatus;
+            });
+
+            renderWaterPoints(filtered);
+        }
+
+        // Render Community Reports
+        function renderReports() {
+            const container = document.getElementById('recent-reports-list');
+            container.innerHTML = '';
+
+            communityReports.forEach(rep => {
+                const item = document.createElement('div');
+                item.className = "bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex items-start justify-between text-xs";
+                item.innerHTML = `
+                    <div>
+                        <div class="font-bold text-slate-900">${rep.location} <span class="font-normal text-slate-500">(${rep.type})</span></div>
+                        <p class="text-slate-600 mt-0.5">${rep.desc}</p>
+                    </div>
+                    <span class="text-slate-400 shrink-0 ml-2">${rep.time}</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Handle Report Submission
+        function handleReportSubmit(e) {
+            e.preventDefault();
+            const loc = document.getElementById('report-location').value;
+            const type = document.getElementById('report-type').value;
+            const desc = document.getElementById('report-desc').value;
+
+            if(!loc || !desc) return;
+
+            communityReports.unshift({
+                location: loc,
+                type: type,
+                desc: desc,
+                time: "방금 전"
+            });
+
+            renderReports();
+            document.getElementById('report-form').reset();
+            alert(currentLang === 'ko' ? "제보가 접수되었습니다. 검토 후 반영됩니다." : "Report submitted successfully.");
+        }
+
+        // Switch Tabs
+        function switchTab(tabKey) {
+            document.getElementById('sec-finder').classList.add('hidden');
+            document.getElementById('sec-report').classList.add('hidden');
+            document.getElementById('sec-guide').classList.add('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-brand-600', 'text-brand-600', 'font-bold');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+
+            document.getElementById(`sec-${tabKey}`).classList.remove('hidden');
+            const activeTab = document.getElementById(`tab-${tabKey}`);
+            activeTab.classList.add('border-brand-600', 'text-brand-600', 'font-bold');
+            activeTab.classList.remove('border-transparent', 'text-slate-500');
+        }
+
+        // Toggle Low Bandwidth Mode
+        function toggleLowBandwidth() {
+            isLowBandwidth = !isLowBandwidth;
+            document.body.classList.toggle('low-bandwidth', isLowBandwidth);
+            
+            const btn = document.getElementById('btn-low-data');
+            if (isLowBandwidth) {
+                btn.classList.add('bg-amber-100', 'border-amber-400', 'text-amber-900');
+            } else {
+                btn.classList.remove('bg-amber-100', 'border-amber-400', 'text-amber-900');
+            }
+        }
+
+        // Language Switcher
+        function toggleLanguage() {
+            currentLang = currentLang === 'ko' ? 'en' : 'ko';
+            document.getElementById('btn-lang').innerText = currentLang === 'ko' ? '🌐 English' : '🌐 한국어';
+            
+            // Translate static elements
+            const dict = i18n[currentLang];
+            document.getElementById('txt-app-title').innerText = dict.title;
+            document.getElementById('txt-app-subtitle').innerText = dict.subtitle;
+            document.getElementById('txt-low-data-btn').innerText = dict.lowDataBtn;
+            document.getElementById('txt-alert-title').innerText = dict.alertTitle;
+            document.getElementById('txt-alert-desc').innerText = dict.alertDesc;
+            document.getElementById('txt-tab-finder').innerText = dict.tabFinder;
+            document.getElementById('txt-tab-report').innerText = dict.tabReport;
+            document.getElementById('txt-tab-guide').innerText = dict.tabGuide;
+            document.getElementById('opt-all').innerText = dict.all;
+            document.getElementById('opt-safe').innerText = dict.safe;
+            document.getElementById('opt-testing').innerText = dict.testing;
+            document.getElementById('opt-unsafe').innerText = dict.unsafe;
+            document.getElementById('txt-report-form-title').innerText = dict.reportTitle;
+            document.getElementById('lbl-location').innerText = dict.lblLocation;
+            document.getElementById('lbl-type').innerText = dict.lblType;
+            document.getElementById('lbl-desc').innerText = dict.lblDesc;
+            document.getElementById('btn-submit-report').innerText = dict.btnSubmit;
+            document.getElementById('txt-recent-reports').innerText = dict.recentReports;
+            document.getElementById('txt-live-feed').innerText = dict.liveFeed;
+            document.getElementById('txt-guide-header').innerText = dict.guideHeader;
+            document.getElementById('txt-guide-sub').innerText = dict.guideSub;
+            document.getElementById('txt-boil-title').innerText = dict.boilTitle;
+            document.getElementById('txt-boil-desc').innerText = dict.boilDesc;
+            document.getElementById('txt-sodis-title').innerText = dict.sodisTitle;
+            document.getElementById('txt-sodis-desc').innerText = dict.sodisDesc;
+            document.getElementById('txt-filter-title').innerText = dict.filterTitle;
+            document.getElementById('txt-filter-desc').innerText = dict.filterDesc;
+            document.getElementById('txt-check-boil').innerText = dict.checkBoil;
+            document.getElementById('txt-check-sodis').innerText = dict.checkSodis;
+            document.getElementById('txt-check-filter').innerText = dict.checkFilter;
+            document.getElementById('txt-footer-sdg').innerText = dict.footerSdg;
+
+            // Re-render Data
+            filterWaterPoints();
+        }
+
+        // Checklist Interactivity
+        function toggleChecklist(el) {
+            const parent = el.closest('div');
+            if (el.checked) {
+                parent.classList.add('opacity-75');
+            } else {
+                parent.classList.remove('opacity-75');
+            }
+        }
+
+        // Initialize App
+        window.onload = function() {
+            renderWaterPoints(waterPoints);
+            renderReports();
+        };
+    </script>
+</body>
+</html>
